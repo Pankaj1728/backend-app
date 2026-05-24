@@ -49,24 +49,9 @@ app.use(helmet({
     referrerPolicy: { policy: 'same-origin' },
 }));
 
-// Configure CORS with specific origins, supporting Vercel dynamic domains (*.vercel.app)
-const allowedOrigins = [
-    process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, '') : null,
-    'http://localhost:5000',
-    'http://localhost:3000'
-].filter(Boolean) as string[];
-
+// Configure CORS to dynamically allow request origin (crucial for Vercel preview domains and dynamic subdomains)
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        const cleanOrigin = origin.replace(/\/$/, '');
-        const isAllowed = allowedOrigins.includes(cleanOrigin) || cleanOrigin.endsWith('.vercel.app');
-        if (isAllowed) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
