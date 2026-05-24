@@ -22,9 +22,13 @@ const app = express();
 
 connectDB();
 
-// Create uploads/csv directory if it doesn't exist
-if (!fs.existsSync('uploads/csv')) {
-    fs.mkdirSync('uploads/csv', { recursive: true });
+// Create uploads/csv directory if it doesn't exist (skip on Vercel to prevent EROFS)
+if (!process.env.VERCEL && !fs.existsSync('uploads/csv')) {
+    try {
+        fs.mkdirSync('uploads/csv', { recursive: true });
+    } catch (err) {
+        console.error('Failed to create uploads/csv directory:', err);
+    }
 }
 
 app.use(helmet({
@@ -68,6 +72,9 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 app.use('/uploads', express.static('uploads'));
+if (process.env.VERCEL) {
+    app.use('/uploads', express.static('/tmp'));
+}
 
 const swaggerOptions = {
     definition: {
@@ -106,6 +113,11 @@ app.use('/api/notifications', notificationRoutes);
 
 app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+export default app;

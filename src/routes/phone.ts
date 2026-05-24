@@ -19,10 +19,12 @@ const router = express.Router();
 
 router.use(authenticate);
 
-// Configure multer for CSV upload
+import os from 'os';
+
 const csvStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/csv');
+        const dest = process.env.VERCEL ? os.tmpdir() : 'uploads/csv';
+        cb(null, dest);
     },
     filename: (req, file, cb) => {
         cb(null, `${Date.now()}-${file.originalname}`);

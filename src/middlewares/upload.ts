@@ -1,9 +1,12 @@
 import multer from 'multer';
 import path from 'path';
 
+import os from 'os';
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        const dest = process.env.VERCEL ? os.tmpdir() : 'uploads/';
+        cb(null, dest);
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
